@@ -1,12 +1,14 @@
 // src/presentation/http/routes.rs
-use crate::presentation::http::controllers::{articles, auth};
 use crate::presentation::http::state::HttpState;
+use crate::presentation::http::{
+    controllers::{articles, auth},
+    openapi::{self, StatusResponse},
+};
 use axum::{
     Extension, Router,
     http::Method,
     routing::{get, patch, post, put},
 };
-use serde_json::json;
 use std::time::Duration;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
@@ -25,6 +27,7 @@ pub fn build_router(state: HttpState) -> Router {
         .max_age(Duration::from_secs(3600));
 
     Router::new()
+        .merge(openapi::docs_router())
         .route("/health", get(health))
         .route("/api/v1/auth/register", post(auth::register))
         .route("/api/v1/auth/login", post(auth::login))
@@ -60,6 +63,16 @@ pub fn build_router(state: HttpState) -> Router {
         .layer(Extension(state))
 }
 
-async fn health() -> axum::Json<serde_json::Value> {
-    axum::Json(json!({ "status": "ok" }))
+#[utoipa::path(
+    get,
+    path = "/health",
+    responses(
+        (status = 200, description = "Service health check.", body = crate::presentation::http::openapi::StatusResponse)
+    ),
+    tag = "System"
+)]
+pub async fn health() -> axum::Json<StatusResponse> {
+    axum::Json(StatusResponse {
+        status: "ok".into(),
+    })
 }

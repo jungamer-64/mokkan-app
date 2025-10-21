@@ -3,32 +3,34 @@ use crate::application::{
     commands::users::{
         ChangePasswordCommand, LoginUserCommand, RegisterUserCommand, UpdateUserCommand,
     },
-    dto::{AuthTokenDto, CursorPage, UserDto, UserProfileDto},
+    dto::{AuthTokenDto, UserDto, UserProfileDto},
     queries::users::ListUsersQuery,
 };
 use crate::presentation::http::error::{HttpResult, IntoHttpResult};
 use crate::presentation::http::extractors::{Authenticated, MaybeAuthenticated};
+use crate::presentation::http::openapi::{StatusResponse, UserListResponse};
 use crate::presentation::http::state::HttpState;
 use axum::{
     Extension, Json,
     extract::{Path, Query},
 };
 use serde::{Deserialize, Serialize};
+use utoipa::IntoParams;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct RegisterRequest {
     pub username: String,
     pub password: String,
     pub role: Option<crate::domain::user::Role>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct LoginRequest {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct LoginResponse {
     pub token: AuthTokenDto,
     pub user: UserDto,
@@ -38,7 +40,7 @@ fn default_limit() -> u32 {
     20
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams, utoipa::ToSchema)]
 pub struct ListUsersParams {
     #[serde(default = "default_limit")]
     pub limit: u32,
@@ -48,18 +50,31 @@ pub struct ListUsersParams {
     pub q: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateUserRequest {
     pub is_active: Option<bool>,
     pub role: Option<crate::domain::user::Role>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct ChangePasswordRequest {
     pub current_password: Option<String>,
     pub new_password: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/register",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "User registered.", body = UserDto),
+        (status = 400, description = "Validation failed.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 409, description = "Username already exists.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 500, description = "Unexpected server error.", body = crate::presentation::http::error::ErrorResponse)
+    ),
+    security([]),
+    tag = "Auth"
+)]
 pub async fn register(
     Extension(state): Extension<HttpState>,
     actor: MaybeAuthenticated,
@@ -80,6 +95,18 @@ pub async fn register(
         .map(Json)
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/login",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Login successful.", body = LoginResponse),
+        (status = 401, description = "Invalid credentials.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 500, description = "Unexpected server error.", body = crate::presentation::http::error::ErrorResponse)
+    ),
+    security([]),
+    tag = "Auth"
+)]
 pub async fn login(
     Extension(state): Extension<HttpState>,
     Json(payload): Json<LoginRequest>,
@@ -102,6 +129,18 @@ pub async fn login(
     }))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/auth/me",
+    responses(
+        (status = 200, description = "Current user profile.", body = UserProfileDto),
+        (status = 401, description = "Unauthorized.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 403, description = "Forbidden.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 500, description = "Unexpected server error.", body = crate::presentation::http::error::ErrorResponse)
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Auth"
+)]
 pub async fn profile(
     Extension(state): Extension<HttpState>,
     Authenticated(user): Authenticated,
@@ -115,12 +154,25 @@ pub async fn profile(
         .map(Json)
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/users",
+    params(ListUsersParams),
+    responses(
+        (status = 200, description = "List of users.", body = UserListResponse),
+        (status = 401, description = "Unauthorized.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 403, description = "Forbidden.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 500, description = "Unexpected server error.", body = crate::presentation::http::error::ErrorResponse)
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Users"
+)]
 pub async fn list_users(
     Extension(state): Extension<HttpState>,
     Authenticated(user): Authenticated,
     Query(params): Query<ListUsersParams>,
-) -> HttpResult<Json<CursorPage<UserDto>>> {
-    state
+) -> HttpResult<Json<UserListResponse>> {
+    let page = state
         .services
         .user_queries
         .list_users(
@@ -132,10 +184,29 @@ pub async fn list_users(
             },
         )
         .await
-        .into_http()
-        .map(Json)
+        .into_http()?;
+
+    Ok(Json(UserListResponse::from(page)))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/v1/users/{id}",
+    params(
+        ("id" = i64, Path, description = "User identifier")
+    ),
+    request_body = UpdateUserRequest,
+    responses(
+        (status = 200, description = "User updated.", body = UserDto),
+        (status = 400, description = "Invalid input.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 401, description = "Unauthorized.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 403, description = "Forbidden.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 404, description = "User not found.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 500, description = "Unexpected server error.", body = crate::presentation::http::error::ErrorResponse)
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Users"
+)]
 pub async fn update_user(
     Extension(state): Extension<HttpState>,
     Authenticated(user): Authenticated,
@@ -157,12 +228,30 @@ pub async fn update_user(
         .map(Json)
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/users/{id}/change-password",
+    params(
+        ("id" = i64, Path, description = "User identifier")
+    ),
+    request_body = ChangePasswordRequest,
+    responses(
+        (status = 200, description = "Password changed.", body = StatusResponse),
+        (status = 400, description = "Invalid input.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 401, description = "Unauthorized.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 403, description = "Forbidden.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 404, description = "User not found.", body = crate::presentation::http::error::ErrorResponse),
+        (status = 500, description = "Unexpected server error.", body = crate::presentation::http::error::ErrorResponse)
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Users"
+)]
 pub async fn change_password(
     Extension(state): Extension<HttpState>,
     Authenticated(user): Authenticated,
     Path(id): Path<i64>,
     Json(payload): Json<ChangePasswordRequest>,
-) -> HttpResult<Json<serde_json::Value>> {
+) -> HttpResult<Json<StatusResponse>> {
     let command = ChangePasswordCommand {
         user_id: id,
         current_password: payload.current_password,
@@ -176,5 +265,7 @@ pub async fn change_password(
         .await
         .into_http()?;
 
-    Ok(Json(serde_json::json!({ "status": "password_changed" })))
+    Ok(Json(StatusResponse {
+        status: "password_changed".into(),
+    }))
 }
