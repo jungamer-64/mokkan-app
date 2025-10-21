@@ -1,0 +1,6 @@
+2025-10-22T01:22:13+09:00 [INFO] (codacy-cli-v2/cli-v2.go:27) Starting Codacy CLI version=1.0.0-main.360.sha.06bb49b (06bb49b) built at 2025-10-21T10:02:19Z
+2025-10-22T01:22:13+09:00 [INFO] (codacy-cli-v2/cmd/root.go:34) Executing CLI command command=init full_command=[/home/jungamer/.cache/codacy/codacy-cli-v2/1.0.0-main.360.sha.06bb49b/codacy-cli-v2 init --provider gh --organization jungamer-64 --repository rust_cms_nw --api-token ***] args=[]
+2025-10-22T01:22:36+09:00 [INFO] (codacy-cli-v2/cli-v2.go:27) Starting Codacy CLI version=1.0.0-main.360.sha.06bb49b (06bb49b) built at 2025-10-21T10:02:19Z
+2025-10-22T01:22:36+09:00 [INFO] (codacy-cli-v2/cmd/root.go:34) Executing CLI command full_command=[/home/jungamer/.cache/codacy/codacy-cli-v2/1.0.0-main.360.sha.06bb49b/codacy-cli-v2 init --provider gh --organization jungamer-64 --repository rust_cms_nw --api-token ***] args=[] command=init
+2025-10-22T01:24:00+09:00 [INFO] (codacy-cli-v2/cli-v2.go:27) Starting Codacy CLI version=1.0.0-main.360.sha.06bb49b (06bb49b) built at 2025-10-21T10:02:19Z
+2025-10-22T01:24:00+09:00 [INFO] (codacy-cli-v2/cmd/root.go:34) Executing CLI command command=init full_command=[/home/jungamer/.cache/codacy/codacy-cli-v2/1.0.0-main.360.sha.06bb49b/codacy-cli-v2 init --provider gh --organization jungamer-64 --repository rust_cms_nw --api-token ***] args=[]

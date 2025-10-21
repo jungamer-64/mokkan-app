@@ -1,0 +1,6 @@
+{
+  "readonly": [
+    "backend/**"
+  ],
+  "description": "frontend-only Codex workspace; backend is subtree-synced."
+}
