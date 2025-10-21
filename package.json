@@ -1,5 +1,5 @@
 {
-  "name": "rust-cms-app",
+  "name": "mokkan_app",
   "version": "0.1.0",
   "private": true,
   "description": "Combined workspace to run the Rust backend and frontend together",
