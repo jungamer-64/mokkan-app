@@ -4,15 +4,13 @@
   "private": true,
   "description": "Combined workspace to run the Rust backend and frontend together",
   "scripts": {
-    "dev": "concurrently -k -n backend,frontend -c auto \"cargo run --manifest-path backend/Cargo.toml\" \"npm run dev --prefix frontend\"",
+    "dev": "concurrently -k -n backend,frontend -c auto \"cargo run --manifest-path backend/Cargo.toml\" \"pnpm -C frontend dev\"",
     "dev:backend": "cargo run --manifest-path backend/Cargo.toml",
-    "dev:frontend": "npm run dev --prefix frontend",
-    "build": "npm run build --prefix frontend && cargo build --manifest-path backend/Cargo.toml --release"
+    "dev:frontend": "pnpm -C frontend dev",
+    "build": "pnpm -C frontend build && cargo build --manifest-path backend/Cargo.toml --release"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
   },
-  "workspaces": [
-    "frontend"
-  ]
+  "packageManager": "pnpm@10.19.0"
 }
