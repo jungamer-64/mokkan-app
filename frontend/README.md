@@ -1,48 +1,36 @@
-## Overview
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-This frontend is a lightweight dashboard for the Rust CMS backend. It consumes the public
-`/api/v1/articles` endpoints to list articles, lets you filter them by keyword, page through the
-results, and inspect the full body of any article. You can also refresh an individual article to
-fetch the latest content from the API.
+## Getting Started
 
-The UI is built with React, TypeScript, and Vite. Styling is handled with handcrafted CSS so it can
-be customised without additional dependencies.
+First, run the development server:
 
-## Getting started
-
-Install dependencies:
-
-```sh
-npm install
-```
-
-Run the development server (expects the backend on `http://localhost:8080` by default):
-
-```sh
+```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Create a production build:
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```sh
-npm run build
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Preview the production build locally:
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```sh
-npm run preview
-```
+## Learn More
 
-## Configuration
+To learn more about Next.js, take a look at the following resources:
 
-The frontend reads the backend origin from the `VITE_API_BASE_URL` environment variable. When it is
-omitted, the default `http://localhost:8080` is used.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Create a `.env.local` file in this directory if you need a custom value:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-```dotenv
-VITE_API_BASE_URL=http://127.0.0.1:8080
-```
+## Deploy on Vercel
 
-Restart the dev server after changing environment variables so Vite can pick up the new value.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
